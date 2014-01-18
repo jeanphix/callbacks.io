@@ -6,5 +6,9 @@
   "dependencies": {
     "dotenv": "0.2.x",
     "express": "3.x"
+  },
+  "devDependencies": {
+    "mocha": "1.17.x",
+    "should": "3.0.x"
   }
 }
