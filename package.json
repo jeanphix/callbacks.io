@@ -5,7 +5,9 @@
   "private": true,
   "dependencies": {
     "dotenv": "0.2.x",
-    "express": "3.x"
+    "express": "3.x",
+    "pg": "2.10.x",
+    "sequelize": "1.7.x"
   },
   "devDependencies": {
     "mocha": "1.17.x",

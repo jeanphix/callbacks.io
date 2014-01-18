@@ -4,6 +4,7 @@
 
 All environment specific configs are set within a ``.env`` file:
 
+    DATABASE_URL=<database dsn>
     PORT=<application port>
 
     # Testing
