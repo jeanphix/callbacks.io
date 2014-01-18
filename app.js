@@ -6,4 +6,7 @@ var express = require('express'),
 dotenv.load();
 
 
+app.set('port', process.env.PORT || 3000);
+
+
 module.exports = app;
