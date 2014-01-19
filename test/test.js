@@ -1,5 +1,6 @@
 var app = require('../app'),
     should = require('should'),
+    lodash = require('lodash'),
     http = require('http'),
     db = require('../models'),
     port = process.env.TESTING_APP_PORT || 9999,
@@ -141,6 +142,89 @@ describe('App', function () {
                     checkHandlerPayload(json, handler, done);
                 });
             });
+        });
+    });
+
+    describe('/:id/listener', function () {
+        var handler,
+            listenerUrl;
+
+        beforeEach(function (done) {
+            handler = db.Handler.build();
+            handler.save().success(function () { done(); });
+            listenerUrl = handler.toJSON().listener_url;
+        });
+
+        it('should respond with 200 status', function (done) {
+            request.get(listenerUrl).end(function (err, response) {
+                response.status.should.equal(200);
+                done();
+            });
+        });
+
+        it('should store headers', function (done) {
+            request.get(listenerUrl)
+                .set('X-Custom', 'A custom value')
+                .end(function (err, response) {
+                    db.Callback.find({ handler_id: handler.id }).success(function (callback) {
+                        should(callback.headers['x-custom']).equal('A custom value');
+                        done();
+                    });
+                });
+        });
+
+        it('should store body', function (done) {
+            request.post(listenerUrl)
+                .send('a body')
+                .end(function (err, response) {
+                    db.Callback.find({ handler_id: handler.id }).success(function (callback) {
+                        callback.body.should.equal('a body');
+                        done();
+                    });
+                });
+        });
+
+        it('should handle json', function (done) {
+            var json = '{ "key": "value" }';
+            request.post(listenerUrl)
+                .set('Content-Type', 'application/json')
+                .send(json)
+                .end(function (err, response) {
+                    db.Callback.find({ handler_id: handler.id }).success(function (callback) {
+                        callback.body.should.equal(json);
+                        lodash.isEqual(callback.data, JSON.parse(json)).should.ok;
+                        done();
+                    });
+                });
+        });
+
+        it('should handle form data', function (done) {
+            var data = { key: 'value' };
+            request.post(listenerUrl)
+                .send(data)
+                .end(function (err, response) {
+                    db.Callback.find({ handler_id: handler.id }).success(function (callback) {
+                        lodash.isEqual(callback.data, data).should.ok;
+                        done();
+                    });
+                });
+        });
+
+        it('should handle all methods', function (done) {
+            var methods = ['get', 'post', 'put', 'head', 'options'],
+                next = 0,
+                test = function (current) {
+                    var method;
+                    if (next === methods.length) { return done(); }
+                    method = methods[current];
+                    request[method](listenerUrl).end(function (err, response) {
+                        response.status.should.equal(200);
+                        next += 1;
+                        test(next);
+                    });
+                };
+
+            test(0);
         });
     });
 });

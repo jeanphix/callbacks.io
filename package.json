@@ -6,6 +6,7 @@
   "dependencies": {
     "dotenv": "0.2.x",
     "express": "3.x",
+    "lodash": "2.4.x",
     "pg": "2.10.x",
     "sequelize": "1.7.x",
     "pg-hstore": "1.0.x",
