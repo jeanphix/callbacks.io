@@ -2,7 +2,9 @@ var app = require('../app'),
     should = require('should'),
     http = require('http'),
     db = require('../models'),
-    port = process.env.TESTING_APP_PORT || 9999;
+    port = process.env.TESTING_APP_PORT || 9999,
+    request = require('supertest'),
+    request = request('http://localhost:' + port.toString());
 
 
 db.sequelize.config.database += '_test';
@@ -55,6 +57,48 @@ describe('Models', function () {
 
             it('should contain the listener url', function () {
                 json.should.have.property('listener_url', '/' + handler.id + '/listener');
+            });
+        });
+    });
+});
+
+
+describe('App', function () {
+    "use strict";
+    var checkHandlerPayload = function (json, handler, callback) {
+        var payload = handler.toJSON();
+        json.should.have.property('url', payload.url);
+        json.should.have.property('listener_url', payload.listener_url);
+        json.should.have.property('created_at');
+        json.should.have.property('updated_at');
+        if (callback) { callback(); }
+    };
+
+    describe('/', function () {
+        describe('POST', function () {
+            var response;
+
+            beforeEach(function (done) {
+                request.post('/')
+                    .end(function (err, res) {
+                        response = res;
+                        done();
+                    });
+            });
+
+            it('should respond with json', function () {
+                response.headers['content-type'].should.equal('application/json');
+            });
+
+            it('should respond with 201 status', function () {
+                response.status.should.equal(201);
+            });
+
+            it('should respond the new handler payload', function (done) {
+                var json = JSON.parse(response.text);
+                db.Handler.find(json.id).success(function (handler) {
+                    checkHandlerPayload(json, handler, done);
+                });
             });
         });
     });
