@@ -3,6 +3,7 @@ var app = require('../app'),
     http = require('http'),
     db = require('../models'),
     port = process.env.TESTING_APP_PORT || 9999,
+    uuid = require('uuid'),
     request = require('supertest'),
     request = request('http://localhost:' + port.toString());
 
@@ -97,6 +98,46 @@ describe('App', function () {
             it('should respond the new handler payload', function (done) {
                 var json = JSON.parse(response.text);
                 db.Handler.find(json.id).success(function (handler) {
+                    checkHandlerPayload(json, handler, done);
+                });
+            });
+        });
+    });
+
+    describe('/:id', function () {
+        var handler;
+
+        beforeEach(function (done) {
+            handler = db.Handler.build();
+            handler.save().success(function () { done(); });
+        });
+
+        describe('GET', function () {
+            it('should respond with 404 status when not found', function (done) {
+                request.get('/' + uuid.v4()).end(function (err, response) {
+                    response.status.should.equal(404);
+                    done();
+                });
+            });
+
+            it('should respond an error message when not found', function (done) {
+                request.get('/' + uuid.v4()).end(function (err, response) {
+                    var json = JSON.parse(response.text);
+                    json.should.have.property('error', 'Handler not found');
+                    done();
+                });
+            });
+
+            it('should respond with 200 status when found', function (done) {
+                request.get('/' + handler.id).end(function (err, response) {
+                    response.status.should.equal(200);
+                    done();
+                });
+            });
+
+            it('should respond the handler payload when found', function (done) {
+                request.get('/' + handler.id).end(function (err, response) {
+                    var json = JSON.parse(response.text);
                     checkHandlerPayload(json, handler, done);
                 });
             });
