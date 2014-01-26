@@ -157,4 +157,23 @@ app.get('/:id/callbacks/', function (request, response) {
 });
 
 
+app.param('index', /[0-9]*/);
+
+
+app.get('/:id/callbacks/:index', function (request, response) {
+    "use strict";
+    var id = request.params.id[0],
+        index = request.params.index[0];
+    db.Callback.find({
+        where: { index: index, handler_id: id },
+        include: [ { model: db.Handler, required: true } ]
+    }).success(function (callback) {
+        if (callback === null) {
+            return response.json(404, {error: 'Callback not found'});
+        }
+        return response.json(200, callback);
+    });
+});
+
+
 module.exports = app;
