@@ -45,7 +45,7 @@ app.post('/', function (request, response) {
     var handler = db.Handler.build();
 
     handler.save().success(function () {
-        response.json(201, handler);
+        return response.json(201, handler);
     });
 });
 
@@ -73,7 +73,7 @@ var getHandlerOr404 = function (response, id, callback) {
     "use strict";
     db.Handler.find(id).success(function (handler) {
         if (handler === null) {
-            response.json(404, {error: 'Handler not found'});
+            return response.json(404, {error: 'Handler not found'});
         }
         callback(handler);
     });
@@ -84,7 +84,7 @@ app.get('/:id', function (request, response) {
     "use strict";
     var id = request.params.id[0];
     getHandlerOr404(response, id, function (handler) {
-        response.json(200, handler);
+        return response.json(200, handler);
     });
 });
 
@@ -95,7 +95,7 @@ app.all('/:id/listener', function (request, response) {
     getHandlerOr404(response, id, function (handler) {
         db.Callback.buildFromRequest(request, handler, function (callback) {
             callback.save().success(function (callback) {
-                response.json(200, { message: 'success' });
+                return response.json(200, { message: 'success' });
             });
         });
     });
