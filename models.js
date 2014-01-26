@@ -53,7 +53,7 @@ db.Callback = sequelize.define('Callback', {
     index: {
         type: Sequelize.INTEGER,
         primaryKey: true,
-        defaultValue: 1
+        defaultValue: 0
     },
     handler_id: {
         type: Sequelize.UUID,
@@ -105,7 +105,7 @@ db.Callback = sequelize.define('Callback', {
                     data: data,
                     handler_id: handler.id,
                     headers: request.headers,
-                    index: count + 1,
+                    index: count,
                     method: request.method
                 });
                 callback(newCallback);
