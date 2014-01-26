@@ -111,6 +111,18 @@ db.Callback = sequelize.define('Callback', {
                 callback(newCallback);
             });
         }
+    },
+    instanceMethods: {
+        toJSON: function () {
+            "use strict";
+            var json = lodash.extend(this.values, {
+                handler: this.handler.toJSON(),
+                url: '/' + this.handler.id + '/callbacks/' + this.index
+            });
+            delete json.index;
+            delete json.handler_id;
+            return json;
+        }
     }
 });
 
