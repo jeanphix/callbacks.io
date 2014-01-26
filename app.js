@@ -4,7 +4,7 @@ var express = require('express'),
     db = require('./models'),
     lodash = require('lodash'),
     parseRange = require('range-parser'),
-    uuidRegexp = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
+    uuidRegexp = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 
 dotenv.load();
