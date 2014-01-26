@@ -315,4 +315,105 @@ describe('App', function () {
             test(0);
         });
     });
+
+    describe('/:id/callbacks/', function () {
+        var handler;
+
+        beforeEach(function (done) {
+            handler = db.Handler.build();
+            handler.save().success(function () {
+                db.Callback.create({
+                    index: 0,
+                    handler_id: handler.id,
+                    body: 'a sample body',
+                    method: 'GET',
+                    headers: {},
+                    cookies: {},
+                    data: {}
+                }).success(function () {
+                    db.Callback.create({
+                        index: 1,
+                        handler_id: handler.id,
+                        body: '',
+                        method: 'POST',
+                        headers: {},
+                        cookies: {},
+                        data: {}
+                    }).success(function () {
+                        done();
+                    });
+                });
+            });
+        });
+
+        describe('GET', function () {
+            it('should respond with 404 status when not found', function (done) {
+                request.get('/12002fc1-7cee-4680-8cfa-9ff0ee3fad16/callbacks/').end(function (err, response) {
+                    response.status.should.equal(404);
+                    done();
+                });
+            });
+
+            it('should respond with 200 status when found', function (done) {
+                request.get('/' + handler.id + '/callbacks/').end(function (err, response) {
+                    should(response.status).equal(200);
+                    done();
+                });
+            });
+
+            it('should respond with Content-Range header', function (done) {
+                request.get('/' + handler.id + '/callbacks/').end(function (err, response) {
+                    should(response.headers['content-range']).equal('items 0-1/2');
+                    done();
+                });
+            });
+
+            it('should respond with 416 status when an invalid Range is provided', function (done) {
+                request.get('/' + handler.id + '/callbacks/')
+                    .set('Range', 'items=4-7')
+                    .end(function (err, response) {
+                        should(response.status).equal(416);
+                        done();
+                    });
+            });
+
+            it('should respond with 416 status when a malformed Range is provided', function (done) {
+                request.get('/' + handler.id + '/callbacks/')
+                    .set('Range', 'bad range')
+                    .end(function (err, response) {
+                        should(response.status).equal(416);
+                        done();
+                    });
+            });
+
+            it('should respond with Content-Range header including length when an invalid Range is provided', function (done) {
+                request.get('/' + handler.id + '/callbacks/')
+                    .set('Range', 'items=5-7')
+                    .end(function (err, response) {
+                        should(response.headers['content-range']).equal('items */2');
+                        done();
+                    });
+            });
+
+            it('should respond a non limited result set when found', function (done) {
+                request.get('/' + handler.id + '/callbacks/')
+                    .end(function (err, response) {
+                        var json = JSON.parse(response.text);
+                        json.length.should.equal(2);
+                        done();
+                    });
+            });
+
+            it('should correctly limit the result set when a valid Range header is provided', function (done) {
+                request.get('/' + handler.id + '/callbacks/')
+                    .set('Range', 'items=0-0')
+                    .end(function (err, response) {
+                        var json = JSON.parse(response.text);
+                        should(response.headers['content-range']).equal('items 0-0/2');
+                        json.length.should.equal(1);
+                        done();
+                    });
+            });
+        });
+    });
 });
