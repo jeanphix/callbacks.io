@@ -176,4 +176,10 @@ app.get('/:id/callbacks/:index', function (request, response) {
 });
 
 
+app.use(function (request, response) {
+    "use strict";
+    return response.json(404, { error: 'Not found.' });
+});
+
+
 module.exports = app;
