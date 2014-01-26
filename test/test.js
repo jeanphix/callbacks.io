@@ -416,4 +416,56 @@ describe('App', function () {
             });
         });
     });
+
+    describe('/:id/callbacks/:index', function () {
+        var callback, handler;
+
+        beforeEach(function (done) {
+            handler = db.Handler.build();
+            handler.save().success(function () {
+                callback = db.Callback.build({
+                    index: 0,
+                    handler_id: handler.id,
+                    body: 'a sample body',
+                    method: 'GET',
+                    headers: {},
+                    cookies: {},
+                    data: {}
+                });
+                callback.save().success(function () {
+                    callback.handler = handler;
+                    done();
+                });
+            });
+        });
+
+        describe('GET', function () {
+            it('should respond with 404 status when not found', function (done) {
+                request.get(handler.toJSON().url + '/callbacks/100')
+                    .end(function (err, response) {
+                        response.status.should.equal(404);
+                        done();
+                    });
+            });
+            it('should respond with 200 status when found', function (done) {
+                request.get(callback.toJSON().url)
+                    .end(function (err, response) {
+                        response.status.should.equal(200);
+                        done();
+                    });
+            });
+
+            it('should respond callback payload when found', function (done) {
+                request.get(callback.toJSON().url)
+                    .end(function (err, response) {
+                        var json = JSON.parse(response.text),
+                            payload = callback.toJSON();
+                        lodash.each(payload, function (value, key) {
+                            json.should.have.property(key);
+                        });
+                        done();
+                    });
+            });
+        });
+    });
 });
