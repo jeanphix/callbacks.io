@@ -84,6 +84,73 @@ describe('Models', function () {
             });
         });
     });
+
+    describe('Callback', function () {
+        var callback, json;
+
+        beforeEach(function (done) {
+            var handler = db.Handler.build();
+            handler.save().success(function () {
+                callback = db.Callback.build({
+                    handler_id: handler.id,
+                    index: 1,
+                    body: 'a body',
+                    cookies: {},
+                    data: { key: 'value' },
+                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST'
+                });
+                callback.save().success(function () {
+                    db.Callback.find({
+                        where: { handler_id: handler.id, index: 1 },
+                        include: [db.Handler]
+                    }).success(function (found) {
+                        callback = found;
+                        json = callback.toJSON();
+                        done();
+                    });
+                });
+            });
+        });
+
+        describe('toJSON', function () {
+            it('should not contain the handler id', function () {
+                json.should.not.have.property('handler_id');
+            });
+
+            it('should not contain the index', function () {
+                json.should.not.have.property('index');
+            });
+
+            it('should contain the body', function () {
+                json.should.have.property('body', 'a body');
+            });
+            it('should contain the cookies', function () {
+                json.should.have.property('cookies');
+            });
+
+            it('should contain the data', function () {
+                json.should.have.property('data', { key: 'value' });
+            });
+
+            it('should contain the headers', function () {
+                json.should.have.property('headers', { 'Content-Type': 'application/json' });
+            });
+
+            it('should contain the method', function () {
+                json.should.have.property('method', 'POST');
+            });
+
+            it('should contain the handler', function () {
+                json.should.have.property('handler', callback.handler.toJSON());
+            });
+
+            it('should contain the url', function () {
+                var expected = '/' + callback.handler.id + '/callbacks/' + callback.index;
+                json.should.have.property('url', expected);
+            });
+        });
+    });
 });
 
 
