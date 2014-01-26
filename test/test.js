@@ -12,6 +12,18 @@ var app = require('../app'),
 db.sequelize.config.database += '_test';
 
 
+var getLinkByRel = function (json, rel) {
+    "use strict";
+    var url = null;
+    lodash.each(json.links, function (link) {
+        if (link.rel === rel) {
+            url = link.href;
+        }
+    });
+    return url;
+};
+
+
 before(function (done) {
     "use strict";
     http.createServer(app).listen(port.toString(), function () {
@@ -57,8 +69,18 @@ describe('Models', function () {
                 json.should.have.property('url', '/' + handler.id);
             });
 
+            it('should contain links', function () {
+                json.should.have.property('links');
+            });
+
             it('should contain the listener url', function () {
-                json.should.have.property('listener_url', '/' + handler.id + '/listener');
+                var url = getLinkByRel(json, 'listener');
+                url.should.equal('/' + handler.id + '/listener');
+            });
+
+            it('should contain the callbacks url', function () {
+                var url = getLinkByRel(json, 'callbacks');
+                url.should.equal('/' + handler.id + '/callbacks/');
             });
         });
     });
@@ -70,7 +92,6 @@ describe('App', function () {
     var checkHandlerPayload = function (json, handler, callback) {
         var payload = handler.toJSON();
         json.should.have.property('url', payload.url);
-        json.should.have.property('listener_url', payload.listener_url);
         json.should.have.property('created_at');
         json.should.have.property('updated_at');
         if (callback) { callback(); }
@@ -152,7 +173,7 @@ describe('App', function () {
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () { done(); });
-            listenerUrl = handler.toJSON().listener_url;
+            listenerUrl = getLinkByRel(handler.toJSON(), 'listener');
         });
 
         it('should respond with 200 status', function (done) {

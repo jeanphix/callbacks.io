@@ -25,7 +25,15 @@ db.Handler = sequelize.define('Handler', {
             "use strict";
             return lodash.extend(this.values, {
                 url: '/' + this.id,
-                listener_url: '/' + this.id + '/listener'
+                links: [{
+                    rel: 'listener',
+                    methods: '*',
+                    href: '/' + this.id + '/listener'
+                }, {
+                    rel: 'callbacks',
+                    methods: ['GET'],
+                    href: '/' + this.id + '/callbacks/'
+                }]
             });
         },
         countCallbacks: function (callback) {
