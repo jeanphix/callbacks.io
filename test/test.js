@@ -52,7 +52,7 @@ describe('Models', function () {
         describe('toJSON', function () {
             var handler, json;
 
-            before(function (done) {
+            beforeEach(function (done) {
                 // Let's create a well known handler.
                 handler = db.Handler.build();
                 handler.save().success(function () {
