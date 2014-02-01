@@ -165,6 +165,35 @@ describe('App', function () {
     };
 
     describe('/', function () {
+        describe('GET', function () {
+            var response;
+
+            beforeEach(function (done) {
+                request.get('/')
+                    .end(function (err, res) {
+                        response = res;
+                        done();
+                    });
+            });
+
+            it('should respond with 200 status', function () {
+                response.status.should.equal(200);
+            });
+
+            it('should respond with json', function () {
+                response.headers['content-type'].should.equal('application/json');
+            });
+
+            it('should respond the handler creation link', function () {
+                var json = JSON.parse(response.text);
+                json.should.have.property('links', [{
+                    rel: 'handler',
+                    methods: { POST: 'Create a new request handler' },
+                    href: '/'
+                }]);
+            });
+        });
+
         describe('POST', function () {
             var response;
 
