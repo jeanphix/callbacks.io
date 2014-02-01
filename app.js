@@ -43,6 +43,21 @@ app.use(function (request, response, next) {
 });
 
 
+app.get('/', function (reauest, response) {
+    "use strict";
+    return response.json(200, {
+        description: 'HTTP request debugger',
+        links: [{
+            rel: 'handler',
+            methods: {
+                POST: 'Create a new request handler'
+            },
+            href: '/'
+        }]
+    });
+});
+
+
 app.post('/', function (request, response) {
     "use strict";
     var handler = db.Handler.build();
