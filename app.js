@@ -61,16 +61,50 @@ app.use(function (request, response, next) {
 });
 
 
-app.use(function (request, response, next) {
+var getHandlerId = function (request) {
     "use strict";
+    if (request.params.hasOwnProperty('id')) {
+        return request.params.id[0];
+    }
+    return null;
+};
+
+
+var respond = function (request, response) {
+    "use strict";
+    var accept = request.headers.accept,
+        template = response.locals.template,
+        payload = response.locals.payload,
+        hostname,
+        host;
+
+    if (typeof accept === 'string' && (lodash.contains(accept, 'text/html') || lodash.contains(accept, '*/*'))) {
+        if (typeof template === 'string') {
+            response.contentType('text/html');
+            hostname = request.host;
+            host = request.protocol + '://' + hostname;
+            return response.render(template, {
+                payload: payload,
+                hostname: hostname,
+                host: host,
+                handlerId: getHandlerId(request)
+            });
+        }
+
+        if (payload.hasOwnProperty('url')) {
+            return response.redirect(payload.url);
+        }
+    }
+
     response.contentType('application/json');
-    next();
-});
+    return response.json(payload);
+};
 
 
-app.get('/', function (reauest, response) {
+app.get('/', function (request, response, next) {
     "use strict";
-    return response.json(200, {
+    response.status(200);
+    response.locals.payload = {
         description: 'HTTP request debugger',
         links: [{
             rel: 'handler',
@@ -79,18 +113,21 @@ app.get('/', function (reauest, response) {
             },
             href: '/'
         }]
-    });
-});
+    };
+    next();
+}, respond);
 
 
-app.post('/', function (request, response) {
+app.post('/', function (request, response, next) {
     "use strict";
     var handler = db.Handler.build();
 
     handler.save().success(function () {
-        return response.json(201, handler);
+        response.status(201);
+        response.locals.payload = handler.toJSON();
+        next();
     });
-});
+}, respond);
 
 
 app.param(function (name, fn) {
@@ -123,13 +160,14 @@ var getHandlerOr404 = function (response, id, callback) {
 };
 
 
-app.get('/:id', function (request, response) {
+app.get('/:id', function (request, response, next) {
     "use strict";
-    var id = request.params.id[0];
+    var id = getHandlerId(request);
     getHandlerOr404(response, id, function (handler) {
-        return response.json(200, handler);
+        response.locals.payload = handler.toJSON();
+        next();
     });
-});
+}, respond);
 
 
 app.all('/:id/listener', function (request, response) {
@@ -145,9 +183,10 @@ app.all('/:id/listener', function (request, response) {
 });
 
 
-app.get('/:id/callbacks/', function (request, response) {
+app.get('/:id/callbacks/', function (request, response, next) {
     "use strict";
-    var id = request.params.id[0];
+    var id = getHandlerId(request);
+
     getHandlerOr404(response, id, function (handler) {
         response.set('Accept-Ranges', 'items');
         var filters = { where: { handler_id: id }};
@@ -190,11 +229,12 @@ app.get('/:id/callbacks/', function (request, response) {
                 limit: parseInt(end - start + 1, 10).toString()
             })).success(function (callbacks) {
                 response.set('Content-Range', 'items ' + start + '-' + end + '/' + count);
-                return response.json(200, callbacks);
+                response.locals.payload = callbacks;
+                next();
             });
         });
     });
-});
+}, respond);
 
 
 app.param('index', /[0-9]*/);
@@ -202,7 +242,7 @@ app.param('index', /[0-9]*/);
 
 app.get('/:id/callbacks/:index', function (request, response) {
     "use strict";
-    var id = request.params.id[0],
+    var id = getHandlerId(request),
         index = request.params.index[0];
     db.Callback.find({
         where: { index: index, handler_id: id },
