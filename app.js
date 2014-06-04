@@ -109,13 +109,13 @@ app.get('/', function (request, response, next) {
     response.locals.template = 'index';
     response.locals.payload = {
         description: 'HTTP request debugger',
-        links: [{
-            rel: 'handler',
-            methods: {
-                POST: 'Create a new request handler'
-            },
-            href: '/'
-        }]
+        links: {
+            create_handler: {
+                method: 'POST',
+                description: 'Create a new request handler',
+                href: '/'
+            }
+        }
     };
     next();
 }, respond);
