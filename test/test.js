@@ -12,18 +12,6 @@ var app = require('../app'),
 db.sequelize.config.database += '_test';
 
 
-var getLinkByRel = function (json, rel) {
-    "use strict";
-    var url = null;
-    lodash.each(json.links, function (link) {
-        if (link.rel === rel) {
-            url = link.href;
-        }
-    });
-    return url;
-};
-
-
 before(function (done) {
     "use strict";
     http.createServer(app).listen(port.toString(), function () {
@@ -74,12 +62,12 @@ describe('Models', function () {
             });
 
             it('should contain the listener url', function () {
-                var url = getLinkByRel(json, 'listener');
+                var url = json.links.listener.href;
                 url.should.equal('/' + handler.id + '/listener');
             });
 
             it('should contain the callbacks url', function () {
-                var url = getLinkByRel(json, 'callbacks');
+                var url = json.links.callback_list.href;
                 url.should.equal('/' + handler.id + '/callbacks/');
             });
         });
@@ -186,11 +174,13 @@ describe('App', function () {
 
             it('should respond the handler creation link', function () {
                 var json = JSON.parse(response.text);
-                json.should.have.property('links', [{
-                    rel: 'handler',
-                    methods: { POST: 'Create a new request handler' },
-                    href: '/'
-                }]);
+                json.should.have.property('links', {
+                    create_handler: {
+                        method: 'POST',
+                        description: 'Create a new request handler',
+                        href: '/'
+                    }
+                });
             });
         });
 
@@ -269,7 +259,7 @@ describe('App', function () {
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () { done(); });
-            listenerUrl = getLinkByRel(handler.toJSON(), 'listener');
+            listenerUrl = handler.toJSON().links.listener.href;
         });
 
         it('should respond with 200 status', function (done) {
