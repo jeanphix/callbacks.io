@@ -1,3 +1,5 @@
+/*jslint node:true*/
+/*global before, beforeEach, describe, lodash, it*/
 var app = require('../app'),
     should = require('should'),
     lodash = require('lodash'),

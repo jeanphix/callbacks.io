@@ -1,3 +1,5 @@
+/*jslint node: true*/
+/*jslint nomen: true*/
 var express = require('express'),
     app = express(),
     dotenv = require('dotenv'),
