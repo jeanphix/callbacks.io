@@ -433,6 +433,16 @@ describe('App', function () {
                         done();
                     });
             });
+
+            it('should respond a empty array when no results', function (done) {
+                db.Handler.create().success(function (handler) {
+                    request.get('/' + handler.id + '/callbacks/').end(function (err, response) {
+                        var json = JSON.parse(response.text);
+                        json.length.should.equal(0);
+                        done();
+                    });
+                });
+            });
         });
     });
 
