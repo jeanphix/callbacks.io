@@ -171,7 +171,7 @@ describe('App', function () {
             });
 
             it('should respond with json', function () {
-                response.headers['content-type'].should.equal('application/json');
+                response.headers['content-type'].should.startWith('application/json');
             });
 
             it('should respond the handler creation link', function () {
@@ -198,7 +198,7 @@ describe('App', function () {
             });
 
             it('should respond with json', function () {
-                response.headers['content-type'].should.equal('application/json');
+                response.headers['content-type'].should.startWith('application/json');
             });
 
             it('should respond with 201 status', function () {
