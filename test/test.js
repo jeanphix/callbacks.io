@@ -93,7 +93,7 @@ describe('Models', function () {
                 callback.save().success(function () {
                     db.Callback.find({
                         where: { handler_id: handler.id, index: 1 },
-                        include: [db.Handler]
+                        include: [{ model: db.Handler, as: 'handler' }]
                     }).success(function (found) {
                         callback = found;
                         json = callback.toJSON();

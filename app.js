@@ -161,7 +161,7 @@ app.get('/:id/callbacks/', function (request, response) {
                 return response.json(416, { error: e });
             }
             db.Callback.findAll(lodash.extend(filters, {
-                include: [ { model: db.Handler, required: true } ],
+                include: [ { model: db.Handler, as: 'handler', required: true } ],
                 order: 'created_at desc',
                 offset: start.toString(),
                 limit: parseInt(end - start + 1, 10).toString()
@@ -183,7 +183,7 @@ app.get('/:id/callbacks/:index', function (request, response) {
         index = request.params.index[0];
     db.Callback.find({
         where: { index: index, handler_id: id },
-        include: [ { model: db.Handler, required: true } ]
+        include: [ { model: db.Handler, as: 'handler', required: true } ]
     }).success(function (callback) {
         if (callback === null) {
             return response.json(404, {error: 'Callback not found'});
