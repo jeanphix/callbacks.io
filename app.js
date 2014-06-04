@@ -5,6 +5,7 @@ var express = require('express'),
     dotenv = require('dotenv'),
     db = require('./models'),
     exphbs  = require('express3-handlebars'),
+    fs = require('fs'),
     hbs,
     lodash = require('lodash'),
     parseRange = require('range-parser'),
@@ -20,6 +21,7 @@ app.set('list_max_length', process.env.LIST_MAX_LENGTH || 20);
 
 app.use(express.logger('dev'));
 app.use(express.cookieParser());
+app.use("/static", express.static(__dirname + '/static'));
 
 
 hbs = exphbs.create({
@@ -104,6 +106,7 @@ var respond = function (request, response) {
 app.get('/', function (request, response, next) {
     "use strict";
     response.status(200);
+    response.locals.template = 'index';
     response.locals.payload = {
         description: 'HTTP request debugger',
         links: [{

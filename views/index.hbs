@@ -1,0 +1,7 @@
+<p>{{ hostname }} is a service that helps you debugging http requests.</p>
+<p>You can create a new handler that will record all incoming requests:</p>
+<form method="post" action='/'>
+    <input type="submit" value="Create a new handler" />
+</form>
+<p>Or you can use the JSON API available starting from:</p>
+<pre><code>curl {{ host }} -H accept:application/json</code></pre>

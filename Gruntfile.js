@@ -4,12 +4,23 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         watch: {
+            styles: {
+                files: 'styles/*',
+                tasks: ['stylus']
+            },
             scripts: {
                 files: '**/*.js',
                 tasks: ['express:dev']
             },
             options: {
                 spawn: false
+            }
+        },
+        stylus: {
+            compile: {
+                files: {
+                    'static/style.css': 'styles/style.styl'
+                }
             }
         },
         express: {
@@ -20,6 +31,7 @@ module.exports = function (grunt) {
             }
         }
     });
+    grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-express-server');
 
