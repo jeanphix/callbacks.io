@@ -167,6 +167,7 @@ app.get('/:id', function (request, response, next) {
     "use strict";
     var id = getHandlerId(request);
     getHandlerOr404(response, id, function (handler) {
+        response.locals.template = 'handler';
         response.locals.payload = handler.toJSON();
         next();
     });

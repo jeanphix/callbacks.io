@@ -7,6 +7,7 @@
         <header>
             <h1>
                 <a href="/">{{ hostname }}</a>
+                {{#if handlerId }} / <a href="/{{ handlerId }}">{{ handlerId }}</a>{{/if }}
             </h1>
         </header>
         <main>
