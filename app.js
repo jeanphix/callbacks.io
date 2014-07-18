@@ -191,6 +191,8 @@ app.get('/:id/callbacks/', function (request, response, next) {
     "use strict";
     var id = getHandlerId(request);
 
+    response.locals.template = 'callbacks';
+
     getHandlerOr404(response, id, function (handler) {
         response.set('Accept-Ranges', 'items');
         var filters = { where: { handler_id: id }};

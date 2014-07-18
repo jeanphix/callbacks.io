@@ -1,0 +1,25 @@
+<article>
+    <h1>{{ method }} {{ created_at }}</h1>
+    <h2>headers</h2>
+    <table>
+        <tbody>
+            {{#keyvalue headers }}
+            <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
+            {{/keyvalue }}
+        </tbody>
+    </table>
+    {{#if data }}
+    <h2>data</h2>
+    <table>
+        <tbody>
+            {{#keyvalue data }}
+            <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
+            {{/keyvalue }}
+        </tbody>
+    </table>
+    {{/if }}
+    {{#if body }}
+    <h2>body</h2>
+    <pre>{{ body }}</pre>
+    {{/if }}
+</article>

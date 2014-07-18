@@ -1,0 +1,10 @@
+<section>
+    <h1>callbacks</h1>
+    {{# if payload }}
+    {{#each payload }}
+    {{>callback }}
+    {{/each }}
+    {{ else }}
+    <p>No callbacks for now.</p>
+    {{/if }}
+<section>
