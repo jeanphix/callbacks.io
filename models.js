@@ -12,7 +12,7 @@ var Sequelize = require('sequelize'),
 dotenv.load();
 
 
-sequelize = new Sequelize(process.env.DATABASE_URL);
+sequelize = new Sequelize(process.env.DATABASE_URL, { logging: false });
 
 
 db.Handler = sequelize.define('Handler', {
