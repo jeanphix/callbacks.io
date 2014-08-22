@@ -2,6 +2,8 @@
 /*jslint nomen: true*/
 var express = require('express'),
     app = express(),
+    http = require('http'),
+    server = http.createServer(app),
     dotenv = require('dotenv'),
     db = require('./models'),
     exphbs  = require('express3-handlebars'),
@@ -269,4 +271,4 @@ app.use(function (request, response) {
 });
 
 
-module.exports = app;
+module.exports = { server: server, app: app };

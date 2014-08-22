@@ -16,7 +16,7 @@ db.sequelize.config.database += '_test';
 
 before(function (done) {
     "use strict";
-    http.createServer(app).listen(port.toString(), function () {
+    app.server.listen(port.toString(), function () {
         done();
     });
 });
