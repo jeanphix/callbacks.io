@@ -90,6 +90,7 @@ describe('Models', function () {
                     headers: { 'Content-Type': 'application/json' },
                     method: 'POST'
                 });
+                callback.handler = handler;
                 callback.save().success(function () {
                     db.Callback.find({
                         where: { handler_id: handler.id, index: 1 },
@@ -343,7 +344,7 @@ describe('App', function () {
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () {
-                db.Callback.create({
+                var callback = db.Callback.build({
                     index: 0,
                     handler_id: handler.id,
                     body: 'a sample body',
@@ -351,8 +352,10 @@ describe('App', function () {
                     headers: {},
                     cookies: {},
                     data: {}
-                }).success(function () {
-                    db.Callback.create({
+                });
+                callback.handler = handler;
+                callback.save().success(function () {
+                    var callback = db.Callback.build({
                         index: 1,
                         handler_id: handler.id,
                         body: '',
@@ -360,7 +363,9 @@ describe('App', function () {
                         headers: {},
                         cookies: {},
                         data: {}
-                    }).success(function () {
+                    });
+                    callback.handler = handler;
+                    callback.save().success(function () {
                         done();
                     });
                 });
@@ -473,8 +478,8 @@ describe('App', function () {
                     cookies: {},
                     data: {}
                 });
+                callback.handler = handler;
                 callback.save().success(function () {
-                    callback.handler = handler;
                     done();
                 });
             });

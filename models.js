@@ -21,6 +21,11 @@ db.Handler = sequelize.define('Handler', {
         type: Sequelize.UUID,
         primaryKey: true,
         defaultValue: uuid.v4
+    },
+    callbacks_count: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        allowNull: false
     }
 }, {
     instanceMethods: {
@@ -41,11 +46,6 @@ db.Handler = sequelize.define('Handler', {
                     }
                 }
             });
-        },
-        countCallbacks: function (callback) {
-            db.Callback.count({
-                where: { handler_id: this.id }
-            }).success(function (count) { callback(count); });
         }
     },
     tableName: 'handler',
@@ -100,23 +100,24 @@ db.Callback = sequelize.define('Callback', {
     underscored: true,
     classMethods: {
         buildFromRequest: function (request, handler, callback) {
-            var data = request.data;
+            var data = request.data,
+                newCallback = db.Callback.build({
+                    body: request.text,
+                    cookies: request.cookies,
+                    handler_id: handler.id,
+                    headers: request.headers,
+                    index: handler.callbacks_count,
+                    method: request.method
+                });
+
+            newCallback.handler = handler;
+
             if (typeof data === typeof {}) {
                 data = hstore.stringify(data);
             }
 
-            handler.countCallbacks(function (count) {
-                var newCallback = db.Callback.build({
-                    body: request.text,
-                    cookies: request.cookies,
-                    data: data,
-                    handler_id: handler.id,
-                    headers: request.headers,
-                    index: count,
-                    method: request.method
-                });
-                callback(newCallback);
-            });
+            newCallback.data = data;
+            callback(newCallback);
         }
     },
     instanceMethods: {
@@ -130,6 +131,13 @@ db.Callback = sequelize.define('Callback', {
             return json;
         }
     }
+});
+
+
+db.Callback.afterCreate(function (callback, next) {
+    callback.handler.increment('callbacks_count').success(function () {
+        return next();
+    });
 });
 
 

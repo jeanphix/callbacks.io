@@ -197,50 +197,49 @@ app.get('/:id/callbacks/', function (request, response, next) {
 
     getHandlerOr404(response, id, function (handler) {
         response.set('Accept-Ranges', 'items');
-        var filters = { where: { handler_id: id }};
-        db.Callback.count(filters).success(function (count) {
-            var max = app.get('list_max_length'),
-                range = parseRange(count, 'items=0-' + (max - 1).toString()),
-                rangeHeader = request.headers.range,
-                start,
-                end;
-            if (!rangeHeader && count === 0) {
-                response.locals.payload = [];
-                response.set('Content-Range', 'items 0-0/0');
-                return next();
-            }
-            if (rangeHeader) {
-                // A ``Range`` header has been provided
-                range = parseRange(count, rangeHeader);
-            }
-            try {
-                if (typeof range !== 'int') {
-                    start = range[0].start;
-                    end = range[0].end;
-                    if ((end - start) > max) {
-                        // The range is too big
-                        throw 'Max range delta is ' + max + '.';
-                    }
+        var count = handler.callbacks_count,
+            max = app.get('list_max_length'),
+            range = parseRange(count, 'items=0-' + (max - 1).toString()),
+            rangeHeader = request.headers.range,
+            start,
+            end;
+        if (!rangeHeader && count === 0) {
+            response.locals.payload = [];
+            response.set('Content-Range', 'items 0-0/0');
+            return next();
+        }
+        if (rangeHeader) {
+            // A ``Range`` header has been provided
+            range = parseRange(count, rangeHeader);
+        }
+        try {
+            if (typeof range !== 'int') {
+                start = range[0].start;
+                end = range[0].end;
+                if ((end - start) > max) {
+                    // The range is too big
+                    throw 'Max range delta is ' + max + '.';
                 }
+            }
 
-                if (range.type !== 'items' || range === -1 || range === -2) {
-                    // The range is not satisfiable
-                    throw 'Invalid range.';
-                }
-            } catch (e) {
-                response.set('Content-Range', 'items */' + count);
-                return response.json(416, { error: e });
+            if (range.type !== 'items' || range === -1 || range === -2) {
+                // The range is not satisfiable
+                throw 'Invalid range.';
             }
-            db.Callback.findAll(lodash.extend(filters, {
-                include: [ { model: db.Handler, as: 'handler', required: true } ],
-                order: 'created_at desc',
-                offset: start.toString(),
-                limit: parseInt(end - start + 1, 10).toString()
-            })).success(function (callbacks) {
-                response.set('Content-Range', 'items ' + start + '-' + end + '/' + count);
-                response.locals.payload = callbacks;
-                next();
-            });
+        } catch (e) {
+            response.set('Content-Range', 'items */' + count);
+            return response.json(416, { error: e });
+        }
+        db.Callback.findAll({
+            where: { handler_id: id },
+            include: [ { model: db.Handler, as: 'handler', required: true } ],
+            order: 'created_at desc',
+            offset: start.toString(),
+            limit: parseInt(end - start + 1, 10).toString()
+        }).success(function (callbacks) {
+            response.set('Content-Range', 'items ' + start + '-' + end + '/' + count);
+            response.locals.payload = callbacks;
+            next();
         });
     });
 }, respond);
