@@ -54,13 +54,17 @@ db.Handler = sequelize.define('Handler', {
 });
 
 
-var parseHstore = function (value) {
-    "use strict";
+var parseHstore = function (object, column) {
+    var value = object.getDataValue(column);
+
     if (lodash.size(value) === 0) {
         return null;
     }
+    if (typeof value === 'object') {
+        return value;
+    }
     return hstore.parse(value);
-}
+};
 
 
 db.Callback = sequelize.define('Callback', {
@@ -78,24 +82,15 @@ db.Callback = sequelize.define('Callback', {
     body: Sequelize.TEXT,
     cookies: {
         type : Sequelize.HSTORE,
-        get: function () {
-            "use strict";
-            return parseHstore(this.getDataValue('cookies'));
-        }
+        get: function () { return parseHstore(this, 'cookies'); }
     },
     data: {
         type : Sequelize.HSTORE,
-        get: function () {
-            "use strict";
-            return parseHstore(this.getDataValue('data'));
-        }
+        get: function () { return parseHstore(this, 'data'); }
     },
     headers: {
         type : Sequelize.HSTORE,
-        get: function () {
-            "use strict";
-            return parseHstore(this.getDataValue('headers'));
-        }
+        get: function () { return parseHstore(this, 'headers'); }
     },
     method: {
         type: Sequelize.STRING,
