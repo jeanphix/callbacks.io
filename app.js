@@ -204,6 +204,7 @@ app.get('/:id/callbacks/', function (request, response, next) {
                 end;
             if (!rangeHeader && count === 0) {
                 response.locals.payload = [];
+                response.set('Content-Range', 'items 0-0/0');
                 return next();
             }
             if (rangeHeader) {

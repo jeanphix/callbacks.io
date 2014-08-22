@@ -389,6 +389,16 @@ describe('App', function () {
                 });
             });
 
+            it('should respond with empty Content-Range header handler.callbacks is empty', function (done) {
+                handler = db.Handler.build();
+                handler.save().success(function () {
+                    request.get('/' + handler.id + '/callbacks/').end(function (err, response) {
+                        should(response.headers['content-range']).equal('items 0-0/0');
+                        done();
+                    });
+                });
+            });
+
             it('should respond with 416 status when an invalid Range is provided', function (done) {
                 request.get('/' + handler.id + '/callbacks/')
                     .set('Range', 'items=4-7')
