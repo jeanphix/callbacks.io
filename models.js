@@ -1,4 +1,5 @@
 /*jslint node:true*/
+"use strict";
 var Sequelize = require('sequelize'),
     PgHstore = require('pg-hstore'),
     hstore = new PgHstore(),
@@ -24,7 +25,6 @@ db.Handler = sequelize.define('Handler', {
 }, {
     instanceMethods: {
         toJSON: function () {
-            "use strict";
             return lodash.extend(this.values, {
                 url: '/' + this.id,
                 links: {
@@ -43,7 +43,6 @@ db.Handler = sequelize.define('Handler', {
             });
         },
         countCallbacks: function (callback) {
-            "use strict";
             db.Callback.count({
                 where: { handler_id: this.id }
             }).success(function (count) { callback(count); });
@@ -101,7 +100,6 @@ db.Callback = sequelize.define('Callback', {
     underscored: true,
     classMethods: {
         buildFromRequest: function (request, handler, callback) {
-            "use strict";
             var data = request.data;
             if (typeof data === typeof {}) {
                 data = hstore.stringify(data);
@@ -123,7 +121,6 @@ db.Callback = sequelize.define('Callback', {
     },
     instanceMethods: {
         toJSON: function () {
-            "use strict";
             var json = lodash.extend(this.values, {
                 handler: this.handler.toJSON(),
                 url: '/' + this.handler.id + '/callbacks/' + this.index
