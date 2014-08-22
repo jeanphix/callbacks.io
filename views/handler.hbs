@@ -1,10 +1,16 @@
-<p>The listener is available at <a href="{{ payload.links.listener.href }}">{{ host }}{{ payload.links.listener.href }}</a>, it will log any HTTP request.</p>
-<h2>Example:</h2>
-<pre><code>curl -X POST -d key=value {{ host }}{{ payload.links.listener.href }}</code></pre>
-{{#if payload.links }}
-<nav>
-    <ul>
-        <li><a href="{{ payload.links.callback_list.href }}">{{ payload.links.callback_list.description }}</a></li>
-    </ul>
-</nav>
-{{/if }}
+<aside>
+    The listener is available at <a href="{{ payload.links.listener.href }}">{{ host }}{{ payload.links.listener.href }}</a>,
+    it will log any HTTP request.
+    Incoming requests will be displayed here in real time.
+</aside>
+<div id="callbacks">
+    <h2>Example:</h2>
+    <pre><code>curl -X POST -d key=value {{ host }}{{ payload.links.listener.href }}</code></pre>
+    {{#if payload.links }}
+    <nav>
+        <ul>
+            <li><a href="{{ payload.links.callback_list.href }}">{{ payload.links.callback_list.description }}</a></li>
+        </ul>
+    </nav>
+    {{/if }}
+</div>
