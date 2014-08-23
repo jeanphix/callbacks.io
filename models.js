@@ -133,7 +133,28 @@ db.Callback = sequelize.define('Callback', {
             var json = lodash.extend(this.values, {
                 handler: this.handler.toJSON(),
                 url: '/' + this.handler.id + '/callbacks/' + this.index
-            });
+            }), links = {};
+
+            if (this.index > 0) {
+                links.previous = {
+                    method: 'GET',
+                    description: 'Get previous callback',
+                    href: '/' + this.handler.id + '/callbacks/' + (this.index - 1).toString()
+                };
+            }
+
+            if (this.index < this.handler.callbacks_count - 1) {
+                links.next = {
+                    method: 'GET',
+                    description: 'Get next callback',
+                    href: '/' + this.handler.id + '/callbacks/' + (this.index + 1).toString()
+                };
+            }
+
+            if (Object.keys(links).length > 0) {
+                json.links = links;
+            }
+
             delete json.index;
             delete json.handler_id;
             return json;

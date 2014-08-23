@@ -33,6 +33,15 @@ beforeEach(function (done) {
 describe('Models', function () {
     "use strict";
     describe('Handler', function () {
+        var handler;
+
+        beforeEach(function (done) {
+            handler = db.Handler.build();
+            handler.save().success(function () {
+                done();
+            });
+        });
+
         it('should have a valid uuid4 as default id', function () {
             var handler = db.Handler.build();
             handler.should.not.equal(null);
@@ -40,15 +49,10 @@ describe('Models', function () {
         });
 
         describe('toJSON', function () {
-            var handler, json;
+            var json;
 
-            beforeEach(function (done) {
-                // Let's create a well known handler.
-                handler = db.Handler.build();
-                handler.save().success(function () {
-                    json = handler.toJSON();
-                    done();
-                });
+            beforeEach(function () {
+                json = handler.toJSON();
             });
 
             it('should contain the id', function () {
@@ -162,6 +166,42 @@ describe('Models', function () {
             it('should contain the url', function () {
                 var expected = '/' + callback.handler.id + '/callbacks/' + callback.index;
                 json.should.have.property('url', expected);
+            });
+
+            it('should not contain links when no other callback are bound to the parent handler', function () {
+                json.should.not.have.property('links');
+            });
+
+            it('should contain `previous` link when a callback has previously been bound to parent handler', function (done) {
+                handler.makeCallback({
+                    handler_id: handler.id,
+                    cookies: {},
+                    data: { key: 'value' },
+                    headers: { 'Content-Type': 'application/json' },
+                    method: 'GET'
+                }, function (newCallback) {
+                    json = newCallback.toJSON();
+                    json.should.have.property('links');
+                    json.links.should.have.property('previous');
+                    json.links.should.not.have.property('next');
+                    done();
+                });
+            });
+
+            it('should contain `next` link when a callback has been bound to parent handler', function (done) {
+                handler.makeCallback({
+                    cookies: {},
+                    data: { key: 'value' },
+                    headers: { 'Content-Type': 'application/json' },
+                    method: 'GET'
+                }, function (newCallback) {
+
+                    json = callback.toJSON();
+                    json.should.have.property('links');
+                    json.links.should.not.have.property('previous');
+                    json.links.should.have.property('next');
+                    done();
+                });
             });
         });
     });
