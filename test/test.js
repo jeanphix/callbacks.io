@@ -73,33 +73,56 @@ describe('Models', function () {
                 url.should.equal('/' + handler.id + '/callbacks/');
             });
         });
+
+        describe('makeCallback', function () {
+            var values = {
+                method: 'POST',
+                data: {},
+                cookies: {},
+                headers: {}
+            };
+
+            it('should assign the handler', function (done) {
+                handler.makeCallback(values, function (callback) {
+                    callback.should.have.property('handler', handler);
+                    done();
+                });
+            });
+
+            it('should set `index` as initial `callbacks_count`', function (done) {
+                var expected = handler.callbacks_count;
+                handler.makeCallback(values, function (callback) {
+                    callback.index.should.equal(expected);
+                    done();
+                });
+            });
+
+            it('should increment `callbacks_count`', function (done) {
+                var count = handler.callbacks_count;
+                handler.makeCallback(values, function (callback) {
+                    handler.callbacks_count.should.equal(count + 1);
+                    done();
+                });
+            });
+        });
     });
 
     describe('Callback', function () {
-        var callback, json;
+        var callback, handler, json;
 
         beforeEach(function (done) {
-            var handler = db.Handler.build();
+            handler = db.Handler.build();
             handler.save().success(function () {
-                callback = db.Callback.build({
-                    handler_id: handler.id,
-                    index: 1,
+                handler.makeCallback({
                     body: 'a body',
                     cookies: {},
                     data: { key: 'value' },
                     headers: { 'Content-Type': 'application/json' },
                     method: 'POST'
-                });
-                callback.handler = handler;
-                callback.save().success(function () {
-                    db.Callback.find({
-                        where: { handler_id: handler.id, index: 1 },
-                        include: [{ model: db.Handler, as: 'handler' }]
-                    }).success(function (found) {
-                        callback = found;
-                        json = callback.toJSON();
-                        done();
-                    });
+                }, function (newCallback) {
+                    callback = newCallback;
+                    json = callback.toJSON();
+                    done();
                 });
             });
         });
@@ -344,30 +367,20 @@ describe('App', function () {
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () {
-                var callback = db.Callback.build({
-                    index: 0,
-                    handler_id: handler.id,
+                handler.makeCallback({
                     body: 'a sample body',
                     method: 'GET',
                     headers: {},
                     cookies: {},
                     data: {}
-                });
-                callback.handler = handler;
-                callback.save().success(function () {
-                    var callback = db.Callback.build({
-                        index: 1,
-                        handler_id: handler.id,
+                }, function () {
+                    handler.makeCallback({
                         body: '',
                         method: 'POST',
                         headers: {},
                         cookies: {},
                         data: {}
-                    });
-                    callback.handler = handler;
-                    callback.save().success(function () {
-                        done();
-                    });
+                    }, function () { done(); });
                 });
             });
         });
@@ -469,17 +482,14 @@ describe('App', function () {
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () {
-                callback = db.Callback.build({
-                    index: 0,
-                    handler_id: handler.id,
+                handler.makeCallback({
                     body: 'a sample body',
                     method: 'GET',
                     headers: {},
                     cookies: {},
                     data: {}
-                });
-                callback.handler = handler;
-                callback.save().success(function () {
+                }, function (newCallback) {
+                    callback = newCallback;
                     done();
                 });
             });

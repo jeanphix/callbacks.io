@@ -29,6 +29,18 @@ db.Handler = sequelize.define('Handler', {
     }
 }, {
     instanceMethods: {
+        makeCallback: function (values, next) {
+            var callback = db.Callback.build(lodash.extend(values, {
+                handler_id: this.id,
+                index: this.callbacks_count
+            }));
+            callback.handler = this;
+            this.increment('callbacks_count').success(function () {
+                callback.save().success(function () {
+                    return next(callback);
+                });
+            });
+        },
         toJSON: function () {
             return lodash.extend(this.values, {
                 url: '/' + this.id,
@@ -99,25 +111,21 @@ db.Callback = sequelize.define('Callback', {
     tableName: 'callback',
     underscored: true,
     classMethods: {
-        buildFromRequest: function (request, handler, callback) {
-            var data = request.data,
-                newCallback = db.Callback.build({
-                    body: request.text,
-                    cookies: request.cookies,
-                    handler_id: handler.id,
-                    headers: request.headers,
-                    index: handler.callbacks_count,
-                    method: request.method
-                });
-
-            newCallback.handler = handler;
+        buildFromRequest: function (request, handler, next) {
+            var data = request.data;
 
             if (typeof data === typeof {}) {
                 data = hstore.stringify(data);
             }
-
-            newCallback.data = data;
-            callback(newCallback);
+            handler.makeCallback({
+                body: request.text,
+                cookies: request.cookies,
+                data: data,
+                headers: request.headers,
+                method: request.method
+            }, function (callback) {
+                next(callback);
+            });
         }
     },
     instanceMethods: {
@@ -131,13 +139,6 @@ db.Callback = sequelize.define('Callback', {
             return json;
         }
     }
-});
-
-
-db.Callback.afterCreate(function (callback, next) {
-    callback.handler.increment('callbacks_count').success(function () {
-        return next();
-    });
 });
 
 
