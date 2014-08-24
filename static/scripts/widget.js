@@ -1,4 +1,4 @@
-/*global Handlebars, JST*/
+/*global Handlebars, io, JST*/
 var Callbacks = (function () {
     "use strict";
     Handlebars.registerHelper('keyvalue', function (obj, options) {
@@ -20,6 +20,18 @@ var Callbacks = (function () {
     };
 
     Callbacks.prototype.init = function () {
+        var socket = io(this.getHost(this.url)),
+            self = this;
+
+        socket.on(this.url, function (callback) {
+            self.count += 1;
+            self.storeCallback(callback);
+            if (self.count > 1) {
+                self.deleteCallback(callback.links.previous.href);
+            }
+            self.render(callback);
+        });
+
         self.loadCallback();
     };
 
@@ -76,6 +88,14 @@ var Callbacks = (function () {
                 return renderCallback(callbacks[0]);
             }
         }, range);
+    };
+
+    Callbacks.prototype.deleteCallback = function (url) {
+        if (this.callbacks.hasOwnProperty(url)) {
+            delete this.callbacks[url];
+            return true;
+        }
+        return false;
     };
 
     Callbacks.prototype.storeCallback = function (callback) {

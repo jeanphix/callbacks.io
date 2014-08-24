@@ -4,6 +4,7 @@ var express = require('express'),
     app = express(),
     http = require('http'),
     server = http.createServer(app),
+    io = require('socket.io')(server),
     dotenv = require('dotenv'),
     db = require('./models'),
     exphbs  = require('express3-handlebars'),
@@ -181,9 +182,10 @@ app.all('/:id/listener', function (request, response) {
     var id = request.params.id[0];
     getHandlerOr404(response, id, function (handler) {
         db.Callback.buildFromRequest(request, handler, function (callback) {
-            callback.save().success(function (callback) {
-                return response.json(200, { message: 'success' });
-            });
+            var data = callback.toJSON(),
+                url = request.protocol + '://' + request.get('Host') + data.handler.links.callback_list.href;
+            io.emit(url, data);
+            return response.json(200, { message: 'success' });
         });
     });
 });
