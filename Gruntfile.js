@@ -3,6 +3,21 @@ module.exports = function (grunt) {
     "use strict";
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        handlebars: {
+            compile: {
+                options: {
+                    namespace: "JST",
+                    compilerOptions: {
+                        knownHelpers: {
+                            "keyvalue": true
+                        }
+                    }
+                },
+                files: {
+                    "static/scripts/views/callback.js": "views/partials/callback.hbs"
+                }
+            }
+        },
         watch: {
             styles: {
                 files: 'styles/*',
@@ -11,6 +26,10 @@ module.exports = function (grunt) {
             scripts: {
                 files: '**/*.js',
                 tasks: ['express:dev']
+            },
+            handlebars: {
+                files: '**/*.hbs',
+                tasks: ['handlebars']
             },
             options: {
                 spawn: false
@@ -31,6 +50,7 @@ module.exports = function (grunt) {
             }
         }
     });
+    grunt.loadNpmTasks('grunt-contrib-handlebars');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-express-server');
