@@ -9,7 +9,7 @@
     "lodash": "2.4.x",
     "pg": "2.10.x",
     "sequelize": "1.7.x",
-    "pg-hstore": "1.0.x",
+    "pg-hstore": "2.1.x",
     "range-parser": "1.0.0",
     "uuid": "1.4.x"
   },

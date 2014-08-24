@@ -1,5 +1,7 @@
+/*jslint node:true*/
 var Sequelize = require('sequelize'),
     PgHstore = require('pg-hstore'),
+    hstore = new PgHstore(),
     dotenv = require('dotenv'),
     lodash = require('lodash'),
     uuid = require('uuid'),
@@ -57,8 +59,8 @@ var parseHstore = function (value) {
     if (lodash.size(value) === 0) {
         return null;
     }
-    return PgHstore.parse(value);
-};
+    return hstore.parse(value);
+}
 
 
 db.Callback = sequelize.define('Callback', {
@@ -107,7 +109,7 @@ db.Callback = sequelize.define('Callback', {
             "use strict";
             var data = request.data;
             if (typeof data === typeof {}) {
-                data = PgHstore.stringify(data);
+                data = hstore.stringify(data);
             }
 
             handler.countCallbacks(function (count) {
