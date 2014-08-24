@@ -346,6 +346,19 @@ describe('App', function () {
                 });
         });
 
+        it('should filter proxy headers', function (done) {
+            app.app.set('proxy_headers', ['x-via']);
+            request.get(listenerUrl)
+                .set('X-Via', 'value')
+                .end(function (err, response) {
+                    db.Callback.find({ handler_id: handler.id }).success(function (callback) {
+                        callback.headers.should.not.have.property('x-via');
+                        done();
+                    });
+                });
+
+        });
+
         it('should store body', function (done) {
             request.post(listenerUrl)
                 .send('a body')

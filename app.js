@@ -20,6 +20,7 @@ dotenv.load();
 
 app.set('port', process.env.PORT || 3000);
 app.set('list_max_length', process.env.LIST_MAX_LENGTH || 20);
+app.set('proxy_headers', (process.env.PROXY_HEADERS || '').split(','));
 
 
 app.use(express.logger('dev'));
@@ -181,6 +182,12 @@ app.all('/:id/listener', function (request, response) {
     "use strict";
     var id = request.params.id[0];
     getHandlerOr404(response, id, function (handler) {
+        Array.prototype.forEach.call(app.get('proxy_headers'), function (header) {
+            if (typeof request.headers[header] !== 'undefined') {
+                delete request.headers[header];
+            }
+        });
+
         db.Callback.buildFromRequest(request, handler, function (callback) {
             var data = callback.toJSON(),
                 url = request.protocol + '://' + request.get('Host') + data.handler.links.callback_list.href;
