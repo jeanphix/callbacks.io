@@ -22,4 +22,17 @@
     <h2>body</h2>
     <pre>{{ body }}</pre>
     {{/if }}
+    {{# if links }}
+    <nav>
+        <ul>
+        {{# if links.previous }}
+            <li><a href="{{ links.previous.href }}" rel="previous" title="{{ links.previous.description }}"><</a></li>
+        {{/if }}
+        <li><a href="{{ url }}" rel="self", title="Callback details">{{ number }} / {{ handler.callbacks_count }}</a></li>
+        {{# if links.next }}
+            <li><a href="{{ links.next.href }}" rel="next" title="{{ links.next.description }}">></a></li>
+        {{/if }}
+        </ul>
+    </nav>
+    {{/if }}
 </article>

@@ -135,6 +135,8 @@ db.Callback = sequelize.define('Callback', {
                 url: '/' + this.handler.id + '/callbacks/' + this.index
             }), links = {};
 
+            json.number = this.index + 1;
+
             if (this.index > 0) {
                 links.previous = {
                     method: 'GET',
