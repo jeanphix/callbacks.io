@@ -234,7 +234,7 @@ app.get('/:id/callbacks/', function (request, response, next) {
         }
         db.Callback.findAll({
             where: { handler_id: id },
-            include: [ { model: db.Handler, as: 'handler', required: true } ],
+            include: [ { model: db.Handler, as: 'handler' } ],
             order: 'created_at desc',
             offset: start.toString(),
             limit: delta.toString()
