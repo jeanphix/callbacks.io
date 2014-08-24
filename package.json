@@ -8,6 +8,7 @@
     "express": "3.x",
     "pg": "2.10.x",
     "sequelize": "1.7.x",
+    "pg-hstore": "1.0.x",
     "uuid": "1.4.x"
   },
   "devDependencies": {
