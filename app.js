@@ -4,6 +4,8 @@ var express = require('express'),
     app = express(),
     dotenv = require('dotenv'),
     db = require('./models'),
+    exphbs  = require('express3-handlebars'),
+    hbs,
     lodash = require('lodash'),
     parseRange = require('range-parser'),
     uuidRegexp = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -18,6 +20,27 @@ app.set('list_max_length', process.env.LIST_MAX_LENGTH || 20);
 
 app.use(express.logger('dev'));
 app.use(express.cookieParser());
+
+
+hbs = exphbs.create({
+    defaultLayout: 'base',
+    extname: '.hbs',
+    helpers: {
+        keyvalue: function (obj, options) {
+            "use strict";
+            var buffer = "",
+                key;
+            lodash.each(lodash.keys(obj), function (key) {
+                buffer += options.fn({key: key, value: obj[key]});
+            });
+
+            return buffer;
+        }
+    }
+});
+
+app.engine('.hbs', hbs.engine);
+app.set('view engine', '.hbs');
 
 
 app.use(function (request, response, next) {
