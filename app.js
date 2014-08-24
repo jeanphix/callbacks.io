@@ -2,6 +2,8 @@ var express = require('express'),
     app = express(),
     dotenv = require('dotenv'),
     db = require('./models'),
+    lodash = require('lodash'),
+    parseRange = require('range-parser'),
     uuidRegexp = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
 
 
@@ -9,6 +11,7 @@ dotenv.load();
 
 
 app.set('port', process.env.PORT || 3000);
+app.set('list_max_length', process.env.LIST_MAX_LENGTH || 20);
 
 
 app.use(express.logger('dev'));
@@ -96,6 +99,58 @@ app.all('/:id/listener', function (request, response) {
         db.Callback.buildFromRequest(request, handler, function (callback) {
             callback.save().success(function (callback) {
                 return response.json(200, { message: 'success' });
+            });
+        });
+    });
+});
+
+
+app.get('/:id/callbacks/', function (request, response) {
+    "use strict";
+    var id = request.params.id[0];
+    getHandlerOr404(response, id, function (handler) {
+        response.set('Accept-Ranges', 'items');
+        var filters = { where: { handler_id: id }};
+        db.Callback.count(filters).success(function (count) {
+            var max = app.get('list_max_length'),
+                range = parseRange(count, 'items=0-' + (max - 1).toString()),
+                rangeHeader = request.headers.range,
+                start,
+                end;
+            if (!rangeHeader && count === 0) {
+                response.locals.payload = [];
+                return next();
+            }
+            if (rangeHeader) {
+                // A ``Range`` header has been provided
+                range = parseRange(count, rangeHeader);
+            }
+            try {
+                if (typeof range !== 'int') {
+                    start = range[0].start;
+                    end = range[0].end;
+                    if ((end - start) > max) {
+                        // The range is too big
+                        throw 'Max range delta is ' + max + '.';
+                    }
+                }
+
+                if (range.type !== 'items' || range === -1 || range === -2) {
+                    // The range is not satisfiable
+                    throw 'Invalid range.';
+                }
+            } catch (e) {
+                response.set('Content-Range', 'items */' + count);
+                return response.json(416, { error: e });
+            }
+            db.Callback.findAll(lodash.extend(filters, {
+                include: [ { model: db.Handler, required: true } ],
+                order: 'created_at desc',
+                offset: start.toString(),
+                limit: parseInt(end - start + 1, 10).toString()
+            })).success(function (callbacks) {
+                response.set('Content-Range', 'items ' + start + '-' + end + '/' + count);
+                return response.json(200, callbacks);
             });
         });
     });
