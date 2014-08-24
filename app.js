@@ -198,6 +198,7 @@ app.get('/:id/callbacks/', function (request, response, next) {
     getHandlerOr404(response, id, function (handler) {
         response.set('Accept-Ranges', 'items');
         var count = handler.callbacks_count,
+            delta,
             max = app.get('list_max_length'),
             range = parseRange(count, 'items=0-' + (max - 1).toString()),
             rangeHeader = request.headers.range,
@@ -216,7 +217,8 @@ app.get('/:id/callbacks/', function (request, response, next) {
             if (typeof range !== 'int') {
                 start = range[0].start;
                 end = range[0].end;
-                if ((end - start) > max) {
+                delta = end - start + 1;
+                if (delta > max) {
                     // The range is too big
                     throw 'Max range delta is ' + max + '.';
                 }
@@ -235,7 +237,7 @@ app.get('/:id/callbacks/', function (request, response, next) {
             include: [ { model: db.Handler, as: 'handler', required: true } ],
             order: 'created_at desc',
             offset: start.toString(),
-            limit: parseInt(end - start + 1, 10).toString()
+            limit: delta.toString()
         }).success(function (callbacks) {
             response.set('Content-Range', 'items ' + start + '-' + end + '/' + count);
             response.locals.payload = callbacks;
