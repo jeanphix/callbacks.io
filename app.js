@@ -76,6 +76,15 @@ var getHandlerId = function (request) {
 };
 
 
+var getProtocol = function (request) {
+    "use strict";
+    if (request.headers.hasOwnProperty('x-forwarded-proto')) {
+        return request.headers['x-forwarded-proto'];
+    }
+    return request.protocol;
+};
+
+
 var respond = function (request, response) {
     "use strict";
     var accept = request.headers.accept,
@@ -88,7 +97,7 @@ var respond = function (request, response) {
         if (typeof template === 'string') {
             response.contentType('text/html');
             hostname = request.host;
-            host = request.protocol + '://' + hostname;
+            host = getProtocol(request) + '://' + hostname;
             return response.render(template, {
                 payload: payload,
                 hostname: hostname,
@@ -180,7 +189,9 @@ app.get('/:id', function (request, response, next) {
 
 app.all('/:id/listener', function (request, response) {
     "use strict";
-    var id = request.params.id[0];
+    var id = request.params.id[0],
+        protocol = getProtocol(request);
+
     getHandlerOr404(response, id, function (handler) {
         Array.prototype.forEach.call(app.get('proxy_headers'), function (header) {
             if (typeof request.headers[header] !== 'undefined') {
@@ -190,7 +201,7 @@ app.all('/:id/listener', function (request, response) {
 
         db.Callback.buildFromRequest(request, handler, function (callback) {
             var data = callback.toJSON(),
-                url = request.protocol + '://' + request.get('Host') + data.handler.links.callback_list.href;
+                url = protocol + '://' + request.get('Host') + data.handler.links.callback_list.href;
             io.emit(url, data);
             return response.json(200, { message: 'success' });
         });
