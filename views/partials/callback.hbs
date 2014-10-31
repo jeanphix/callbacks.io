@@ -1,5 +1,15 @@
 <article>
-    <h1>{{ method }} {{ created_at }}</h1>
+    <h1>{{ method }} {{ path }} {{ created_at }}</h1>
+    {{#if query }}
+    <h2>query</h2>
+    <table>
+        <tbody>
+            {{#keyvalue query }}
+            <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
+            {{/keyvalue }}
+        </tbody>
+    </table>
+    {{/if }}
     <h2>headers</h2>
     <table>
         <tbody>

@@ -175,6 +175,14 @@ describe('Models', function () {
                 json.should.have.property('method', 'POST');
             });
 
+            it('should contain the query', function () {
+                json.should.have.property('query', { query: 'string' });
+            });
+
+            it('should contain the path', function () {
+                json.should.have.property('path', handler.url + '?query=string');
+            });
+
             it('should contain the handler', function () {
                 json.should.have.property('handler', callback.handler.toJSON());
             });

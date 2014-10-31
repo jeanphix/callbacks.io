@@ -109,23 +109,34 @@ db.Callback = sequelize.define('Callback', {
     method: {
         type: Sequelize.STRING,
         allowNull: false
+    },
+    path: Sequelize.TEXT,
+    query: {
+        type : Sequelize.HSTORE,
+        get: function () { return parseHstore(this, 'query'); }
     }
 }, {
     tableName: 'callback',
     underscored: true,
     classMethods: {
         buildFromRequest: function (request, handler, next) {
-            var data = request.data;
+            var data = request.data,
+                query = request.query;
 
             if (typeof data === typeof {}) {
                 data = hstore.stringify(data);
+            }
+            if (typeof query === typeof {}) {
+                query = hstore.stringify(query);
             }
             handler.makeCallback({
                 body: request.text,
                 cookies: request.cookies,
                 data: data,
                 headers: request.headers,
-                method: request.method
+                method: request.method,
+                query: query,
+                path: request.originalUrl
             }, function (callback) {
                 next(callback);
             });
