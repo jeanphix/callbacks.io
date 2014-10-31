@@ -34,11 +34,11 @@ db.Handler = sequelize.define('Handler', {
     instanceMethods: {
         makeCallback: function (values, next) {
             var callback = db.Callback.build(lodash.extend(values, {
-                handler_id: this.id,
-                index: this.callbacks_count
+                handler_id: this.id
             }));
             callback.handler = this;
-            this.increment('callbacks_count').success(function () {
+            this.increment('callbacks_count').success(function (handler) {
+                callback.index = handler.callbacks_count - 1;
                 callback.save().success(function () {
                     return next(callback);
                 });
