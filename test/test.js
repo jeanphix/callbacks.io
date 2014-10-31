@@ -14,6 +14,26 @@ var app = require('../app'),
 db.sequelize.config.database += '_test';
 
 
+var makePayload = function (handler, overrides) {
+    "use strict";
+    var payload = {
+        body: 'a body',
+        cookies: {},
+        data: { key: 'value' },
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        query: { query: 'string' },
+        path: handler.url + '?query=string'
+    };
+
+    if (overrides) {
+        payload = lodash.extend(payload, overrides);
+    }
+
+    return payload;
+};
+
+
 before(function (done) {
     "use strict";
     app.server.listen(port.toString(), function () {
@@ -33,11 +53,13 @@ beforeEach(function (done) {
 describe('Models', function () {
     "use strict";
     describe('Handler', function () {
-        var handler;
+        var handler,
+            payload;
 
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () {
+                payload = makePayload(handler);
                 done();
             });
         });
@@ -79,15 +101,8 @@ describe('Models', function () {
         });
 
         describe('makeCallback', function () {
-            var values = {
-                method: 'POST',
-                data: {},
-                cookies: {},
-                headers: {}
-            };
-
             it('should assign the handler', function (done) {
-                handler.makeCallback(values, function (callback) {
+                handler.makeCallback(payload, function (callback) {
                     callback.should.have.property('handler', handler);
                     done();
                 });
@@ -95,7 +110,7 @@ describe('Models', function () {
 
             it('should set `index` as initial `callbacks_count`', function (done) {
                 var expected = handler.callbacks_count;
-                handler.makeCallback(values, function (callback) {
+                handler.makeCallback(payload, function (callback) {
                     callback.index.should.equal(expected);
                     done();
                 });
@@ -103,7 +118,7 @@ describe('Models', function () {
 
             it('should increment `callbacks_count`', function (done) {
                 var count = handler.callbacks_count;
-                handler.makeCallback(values, function (callback) {
+                handler.makeCallback(payload, function (callback) {
                     handler.callbacks_count.should.equal(count + 1);
                     done();
                 });
@@ -112,22 +127,23 @@ describe('Models', function () {
     });
 
     describe('Callback', function () {
-        var callback, handler, json;
+        var callback,
+            handler,
+            json,
+            payload;
 
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () {
-                handler.makeCallback({
-                    body: 'a body',
-                    cookies: {},
-                    data: { key: 'value' },
-                    headers: { 'Content-Type': 'application/json' },
-                    method: 'POST'
-                }, function (newCallback) {
-                    callback = newCallback;
-                    json = callback.toJSON();
-                    done();
-                });
+                payload = makePayload(handler);
+                handler.makeCallback(
+                    payload,
+                    function (newCallback) {
+                        callback = newCallback;
+                        json = callback.toJSON();
+                        done();
+                    }
+                );
             });
         });
 
@@ -173,35 +189,29 @@ describe('Models', function () {
             });
 
             it('should contain `previous` link when a callback has previously been bound to parent handler', function (done) {
-                handler.makeCallback({
-                    handler_id: handler.id,
-                    cookies: {},
-                    data: { key: 'value' },
-                    headers: { 'Content-Type': 'application/json' },
-                    method: 'GET'
-                }, function (newCallback) {
-                    json = newCallback.toJSON();
-                    json.should.have.property('links');
-                    json.links.should.have.property('previous');
-                    json.links.should.not.have.property('next');
-                    done();
-                });
+                handler.makeCallback(
+                    payload,
+                    function (newCallback) {
+                        json = newCallback.toJSON();
+                        json.should.have.property('links');
+                        json.links.should.have.property('previous');
+                        json.links.should.not.have.property('next');
+                        done();
+                    }
+                );
             });
 
             it('should contain `next` link when a callback has been bound to parent handler', function (done) {
-                handler.makeCallback({
-                    cookies: {},
-                    data: { key: 'value' },
-                    headers: { 'Content-Type': 'application/json' },
-                    method: 'GET'
-                }, function (newCallback) {
-
-                    json = callback.toJSON();
-                    json.should.have.property('links');
-                    json.links.should.not.have.property('previous');
-                    json.links.should.have.property('next');
-                    done();
-                });
+                handler.makeCallback(
+                    payload,
+                    function (newCallback) {
+                        json = callback.toJSON();
+                        json.should.have.property('links');
+                        json.links.should.not.have.property('previous');
+                        json.links.should.have.property('next');
+                        done();
+                    }
+                );
             });
         });
     });
@@ -420,20 +430,14 @@ describe('App', function () {
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () {
-                handler.makeCallback({
+                handler.makeCallback(makePayload(handler, {
                     body: 'a sample body',
-                    method: 'GET',
-                    headers: {},
-                    cookies: {},
-                    data: {}
-                }, function () {
-                    handler.makeCallback({
+                    method: 'GET'
+                }), function () {
+                    handler.makeCallback(makePayload(handler, {
                         body: '',
-                        method: 'POST',
-                        headers: {},
-                        cookies: {},
-                        data: {}
-                    }, function () { done(); });
+                        method: 'POST'
+                    }), function () { done(); });
                 });
             });
         });
@@ -535,13 +539,10 @@ describe('App', function () {
         beforeEach(function (done) {
             handler = db.Handler.build();
             handler.save().success(function () {
-                handler.makeCallback({
+                handler.makeCallback(makePayload(handler, {
                     body: 'a sample body',
-                    method: 'GET',
-                    headers: {},
-                    cookies: {},
-                    data: {}
-                }, function (newCallback) {
+                    method: 'GET'
+                }), function (newCallback) {
                     callback = newCallback;
                     done();
                 });
